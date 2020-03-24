@@ -154,6 +154,10 @@ You just need to run the following command:
 
 `mvn test`
 
+## Getting Started doc
+
+Swagger documentation [here](https://upnid-challenge.herokuapp.com/swagger-ui.html).
+
 
 ## Contribution guidelines
 
