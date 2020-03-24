@@ -4,12 +4,16 @@ package challenge.upnid.services;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import challenge.upnid.constants.RejectCode;
 import challenge.upnid.models.TransactionData;
+import challenge.upnid.models.VeredictResponse;
 import challenge.upnid.repositories.CustomerRepository;
 import challenge.upnid.repositories.TransactionDataRepository;
 
@@ -31,7 +35,7 @@ public class TransactionApprovalService {
 	}
 	
 	
-	public boolean isAlloewed(TransactionData transactionData) {
+	public VeredictResponse isAlloewed(TransactionData transactionData) {
 		var customer = transactionData.getCustomer();
 		var cpfExists = customerRepository.countByCpf(customer.getCpf()) > 0;
 		// If a new user makes a purchase with a very high value,
@@ -41,7 +45,7 @@ public class TransactionApprovalService {
 			var limitValue = metricsService.getAveragePurchageValueForNewUser() * 3;
 			if (details.getTotalValue() > limitValue) {
 				repository.save(transactionData);
-				return false;
+				return new VeredictResponse(false, RejectCode.NEW_USER_BIG_TRANSACTION);
 			}
 		}
 		
@@ -58,7 +62,7 @@ public class TransactionApprovalService {
 			var purchaseNumber = repository.countByCustomerId(customer.getId());
 			if (purchaseNumber > avaragePurchaseNumber * 2) {
 				repository.save(transactionData);
-				return false;
+				return new VeredictResponse(false, RejectCode.NEW_USER_TOO_MANY_TRANSACTIONS);
 			}
 		}
 		
@@ -74,32 +78,32 @@ public class TransactionApprovalService {
 		if (!adresses.contains(shipping.getCountry())
 			&& shipping.getPrice() > details.getTotalValue() * 3) {
 			repository.save(transactionData);
-			return false;
+			return new VeredictResponse(false, RejectCode.SUSPECT_INTERNATIONAL_SHIṔPING);
 		}
 		
 		// many transactions in a short period is suspect.
 		var transactions = repository.findByCustomerId(customer.getId()).stream()
 					.filter(record -> 
-						ChronoUnit.MINUTES.between(
-								record.getCustomer().getCreatedAt().toInstant() , LocalDate.now()
+						TimeUnit.MILLISECONDS.toSeconds( 
+								new Date().getTime() - record.getCreatedAt().getTime()
 						) < 30).collect(Collectors.counting());
 		if (transactions > metricsService.getAveragePurchaseNumberPerWeek()) {
 			repository.save(transactionData);
-			return false;
+			return new VeredictResponse(false, RejectCode.MANY_TRANSACTIONS_IN_SHORT_TIME);
 		}
 		
 		// many transactions using different cards sending 
 		// to same address is suspect.
 		var card = transactionData.getCard();
 		var sameAddressDiffCard = repository.findAll().stream()
-				.filter(record -> record.getCard().equals(card) && 
+				.filter(record -> !record.getCard().equals(card) && 
 						record.getShipping().equals(record.getShipping()))
 				.collect(Collectors.counting());
 		if (sameAddressDiffCard > 3) {
-//			repository.save(transactionData);
-			return false;
+			repository.save(transactionData);
+			return new VeredictResponse(false, RejectCode.TOO_MANY_CARDS_TO_SAME_ADDRRES);
 		}
 		repository.save(transactionData);
-		return true;
+		return new VeredictResponse(true, null);
 	}
 }

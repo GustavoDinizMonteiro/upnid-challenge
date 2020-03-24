@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import challenge.upnid.models.TransactionData;
+import challenge.upnid.models.VeredictResponse;
 import challenge.upnid.services.TransactionApprovalService;
 
 @RestController
@@ -17,7 +18,7 @@ public class TransactionApprovalController {
 	private TransactionApprovalService service;
 
 	@PostMapping
-	public ResponseEntity<Boolean> approval(@RequestBody TransactionData transactionData) {
+	public ResponseEntity<VeredictResponse> approval(@RequestBody TransactionData transactionData) {
 		return ResponseEntity.ok(service.isAlloewed(transactionData));
 	}
 }
