@@ -6,3 +6,5 @@ spring:
     url: jdbc:postgresql://localhost:5432/challenge
     username: test
     password: test
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss

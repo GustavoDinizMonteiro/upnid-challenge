@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -20,6 +21,7 @@ public class Shipping {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	@Column(name = "id", nullable = false, unique = true)
+	@EqualsAndHashCode.Exclude
 	private Long id;
 	
 	@Column
