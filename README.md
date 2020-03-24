@@ -100,6 +100,20 @@ and the aplication will start in port 8080. Opitionaly you can use a specific po
 
 * `java -jar target/*.jar --server.port=$PORT`
 
+### Docker
+
+Additionally, you can use docker container to automatise backend deployment using the image available in docker hub 
+
+``` 
+    docker pull gmonteiro/upnid-challenge:latest
+```
+
+ou building from source following next steps o backend bolder:
+
+```
+    docker build . && docker-compose build && docker-compose run springbootapp
+```
+
 
 ## Running the tests
 
