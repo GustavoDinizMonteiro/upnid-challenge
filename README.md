@@ -94,11 +94,11 @@ With this you need just run the following commands:
 
 * `mvn install`
 
-* `java -jar target/*.jar`
+* `java -jar target/*.jar --spring.profiles.active=prod`
 
 and the aplication will start in port 8080. Opitionaly you can use a specific port:
 
-* `java -jar target/*.jar --server.port=$PORT`
+* `java -jar target/*.jar --spring.profiles.active=prod --server.port=$PORT`
 
 ### Docker
 

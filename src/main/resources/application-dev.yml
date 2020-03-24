@@ -1,0 +1,10 @@
+spring:
+    profiles:
+        active: dev
+    jpa:
+      hibernate:
+        ddl-auto: create-drop
+    datasource:
+      url: jdbc:postgresql://localhost:5432/challenge
+      username: test
+      password: test
