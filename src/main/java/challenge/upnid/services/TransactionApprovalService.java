@@ -15,26 +15,32 @@ import challenge.upnid.repositories.TransactionDataRepository;
 
 @Service
 public class TransactionApprovalService {
-	
-	@Autowired
 	private CustomerRepository customerRepository;
-	
-	@Autowired
-	private TransactionDataRepository repository; 
-	
-	@Autowired
+	private TransactionDataRepository repository;
 	private MetricsService metricsService;
+
+	@Autowired
+	public TransactionApprovalService(
+			CustomerRepository customerRepository, 
+			TransactionDataRepository repository,
+			MetricsService metricsService
+	) {
+		this.customerRepository = customerRepository;
+		this.repository = repository;
+		this.metricsService = metricsService;
+	}
+	
 	
 	public boolean isAlloewed(TransactionData transactionData) {
 		var customer = transactionData.getCustomer();
-		var cpfExists = customerRepository.countByCpf(customer.getEmail()) > 0;
+		var cpfExists = customerRepository.countByCpf(customer.getCpf()) > 0;
 		// If a new user makes a purchase with a very high value,
 		// that transaction is suspect.
 		if (customer.getId() == null || !cpfExists) {
 			var details = transactionData.getDetails();
 			var limitValue = metricsService.getAveragePurchageValueForNewUser() * 3;
 			if (details.getTotalValue() > limitValue) {
-//				repository.save(transactionData);
+				repository.save(transactionData);
 				return false;
 			}
 		}
@@ -51,7 +57,7 @@ public class TransactionApprovalService {
 			var avaragePurchaseNumber = metricsService.getAvaragePurchaseNumberForNewUser();
 			var purchaseNumber = repository.countByCustomerId(customer.getId());
 			if (purchaseNumber > avaragePurchaseNumber * 2) {
-//				repository.save(transactionData);
+				repository.save(transactionData);
 				return false;
 			}
 		}
@@ -67,7 +73,7 @@ public class TransactionApprovalService {
 		var details = transactionData.getDetails();
 		if (!adresses.contains(shipping.getCountry())
 			&& shipping.getPrice() > details.getTotalValue() * 3) {
-//			repository.save(transactionData);
+			repository.save(transactionData);
 			return false;
 		}
 		
@@ -78,7 +84,7 @@ public class TransactionApprovalService {
 								record.getCustomer().getCreatedAt().toInstant() , LocalDate.now()
 						) < 30).collect(Collectors.counting());
 		if (transactions > metricsService.getAveragePurchaseNumberPerWeek()) {
-//			repository.save(transactionData);
+			repository.save(transactionData);
 			return false;
 		}
 		
